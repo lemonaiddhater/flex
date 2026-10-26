@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ================= CRYPTOFLEX v3.0 - Prank Crypto Flexer Tool (100% SIMULATED) =================
+# ================= CRYPTOFLEX v3.1 - Prank Crypto Flexer Tool (100% SIMULATED) =================
 import os, sys, json, time, random, string, datetime
 
 DATA_DIR = os.path.expanduser("~/cryptoflex")
@@ -25,7 +25,7 @@ BANNER = r"""
 """
 def banner():
     print(paint(BANNER))
-    print(paint("  [ CRYPTOFLLEX v3.0 :: SIMULATED FLEX ENGINE :: NOT REAL CRYPTO ]\n"))
+    print(paint("  [ CRYPTOFLEX v3.1 :: SIMULATED FLEX ENGINE :: NOT REAL CRYPTO ]\n"))
 
 def clear(): os.system("clear" if os.name != "nt" else "cls")
 
@@ -37,8 +37,8 @@ def load(f, default):
 def save(f, d):
     with open(f, "w") as fh: json.dump(d, fh, indent=2)
 
-# ---------- ANIMATIONS ----------
-def anim(text, frames=12, delay=0.12):
+# ---------- ANIMATIONS (SLOW / CINEMATIC) ----------
+def anim(text, frames=12, delay=0.25):
     spin = ["|", "/", "-", "\\"]
     for i in range(frames):
         bar = "#" * int((i + 1) / frames * 30) + "-" * (30 - int((i + 1) / frames * 30))
@@ -49,10 +49,10 @@ def anim(text, frames=12, delay=0.12):
 def block_anim():
     chars = "0123456789abcdef"
     print(paint("  [ BLOCKCHAIN SYNC ANIMATION ]"))
-    for i in range(8):
+    for i in range(10):
         h = "".join(random.choice(chars) for _ in range(48))
         sys.stdout.write(f"\r  block {random.randint(800000,900000)} :: {h[:40]}... ")
-        sys.stdout.flush(); time.sleep(0.18)
+        sys.stdout.flush(); time.sleep(0.45)
     print()
 
 # ---------- FAKE DATA ----------
@@ -102,27 +102,63 @@ def add_log(kind, entry):
     logs.setdefault(kind, []).append({**entry, "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
     save(LOG_FILE, logs)
 
-# ---------- KEY SYSTEM ----------
-def setup_keys():
-    if not os.path.exists(KEY_FILE):
-        key = "CFX-" + "".join(random.choice(string.ascii_uppercase + string.digits) for _ in range(4)) + "-" + \
-              "".join(random.choice(string.ascii_uppercase + string.digits) for _ in range(4))
-        save(KEY_FILE, {"owner_key": key, "users": {}})
-        print(paint(f"  [SETUP] First run! Your MASTER ACCESS KEY: {key}"))
-        print(paint("  Save it! Users must enter a key to access the tool."))
-        time.sleep(3)
-    return load(KEY_FILE, None)
-
-def login(keys):
-    clear(); banner()
-    k = input(paint("  Enter Access Key: ")).strip()
-    if k == keys["owner_key"]: return "admin"
-    if k in keys["users"]: return keys["users"][k]
-    print("  Invalid key."); time.sleep(1.5); return None
-
 def new_key():
     return "CFX-" + "".join(random.choice(string.ascii_uppercase + string.digits) for _ in range(4)) + "-" + \
            "".join(random.choice(string.ascii_uppercase + string.digits) for _ in range(4))
+
+# ---------- KEY SYSTEM (SLOW REVEAL + "KEY SAVED?" + 5 TRIES) ----------
+def setup_keys():
+    if not os.path.exists(KEY_FILE):
+        key = new_key()
+        save(KEY_FILE, {"owner_key": key, "users": {}})
+        print(paint("\n  [ FIRST RUN SETUP ]"))
+        time.sleep(1.5)
+        print(paint("  Generating your MASTER ACCESS KEY..."))
+        time.sleep(2)
+        print(paint(f"\n  MASTER ACCESS KEY: {key}"))
+        print(paint("  This is the ONLY admin key. Write it down!"))
+        time.sleep(3)
+        while True:
+            ans = input(paint("\n  Key saved? (y/n): ")).strip().lower()
+            if ans == "y":
+                print(paint("  Key confirmed. Locking in...")); time.sleep(2)
+                break
+            elif ans == "n":
+                print("  Regenerating a new key... make sure to save it this time!")
+                time.sleep(2)
+                key = new_key()
+                save(KEY_FILE, {"owner_key": key, "users": {}})
+                print(paint(f"\n  NEW MASTER ACCESS KEY: {key}"))
+                time.sleep(3)
+            else:
+                print("  Please type 'y' or 'n'.")
+        time.sleep(2)
+    return load(KEY_FILE, None)
+
+def login(keys):
+    for attempt in range(5):
+        clear(); banner()
+        print(paint(f"  [ ACCESS REQUIRED ]  Attempt {attempt + 1}/5\n"))
+        k = input(paint("  Enter Access Key: ")).strip()
+        if k == keys["owner_key"]:
+            print(paint("  Access granted. Welcome, admin.")); time.sleep(2)
+            return "admin"
+        if k in keys["users"]:
+            print(paint(f"  Access granted. Role: {keys['users'][k]}")); time.sleep(2)
+            return keys["users"][k]
+        left = 4 - attempt
+        if left > 0:
+            print(f"  Invalid key. {left} attempt(s) remaining.")
+            time.sleep(2.5)
+        else:
+            print(paint("  [LOCKED] Too many failed attempts."))
+            time.sleep(3)
+            print(paint("  Securing files and closing..."))
+            anim("LOCKING DOWN", 10, 0.3)
+            add_log("system", {"event": "lockout", "reason": "5 failed key attempts"})
+            print(paint("  Goodbye.")); time.sleep(2)
+            sys.exit(0)
+    return None
 
 # ---------- WALLET ----------
 def init_wallet():
@@ -169,7 +205,7 @@ def tx_spoof():
                                           "flash-broadcast (sim)", "relay-flood (sim)"])
         print(paint(f"\n  Coin: {coin} | Amt: {amt} {coin} | Net: {NETWORKS[coin]}"))
         print(paint(f"  From: {sender}\n  To  : {recv}\n  Method: {method}"))
-        anim("BROADCASTING TO MEMPOOL", 20, 0.12); block_anim()
+        anim("BROADCASTING TO MEMPOOL", 20, 0.25); block_anim()
         if random.random() < 0.5:
             txid = fake_txid()
             print(paint(f"\n  [SUCCESS] Fake TX broadcast confirmed!\n  TXID: {txid}\n  Block: {random.randint(800000,920000)}"))
@@ -190,7 +226,7 @@ def sniffer():
     print(paint("  == WALLET SNIFFER (100% SIMULATED / PRANK) ==\n"))
     url = input("  Target URL/platform: ").strip() or "unknown"
     addr = input("  Wallet address: ").strip() or fake_addr("BTC")
-    anim("SCANNING DATABASES", 22, 0.12); block_anim()
+    anim("SCANNING DATABASES", 22, 0.25); block_anim()
     if random.random() < 0.5:
         pool = ["email: victim@{d}.com", "phone: +1-555-{n}", "password: {p}",
                 "seed phrase: {s}", "2FA backup: {c}", "last login IP: 45.{a}.x.x",
@@ -249,7 +285,7 @@ def wallet():
             amt = float(input("  Amount: ") or 0)
             if amt <= w["balances"].get(coin, 0):
                 to = input("  To address: ").strip() or fake_addr(COINS[coin]["chain"])
-                anim("SIGNING & BROADCASTING", 16, 0.1)
+                anim("SIGNING & BROADCASTING", 16, 0.22)
                 if random.random() < 0.85:
                     w["balances"][coin] = round(w["balances"][coin] - amt, 8)
                     txid = fake_txid()
@@ -282,7 +318,7 @@ def hidden_faucet(w):
     n_wallets = int(input("  Number of sending wallets: ") or 1)
     delay = float(input("  Seconds between TXs: ") or 1)
     coin = pick("  Token:", list(COINS.keys()))
-    anim("OPENING SECRET CHANNEL", 10, 0.1)
+    anim("OPENING SECRET CHANNEL", 10, 0.25)
     for i in range(n_tx):
         time.sleep(delay)
         for _ in range(max(n_wallets, 1)):
@@ -377,19 +413,16 @@ def settings():
     opts = [f"Theme: {theme} (change)"] + THEMES
     m = menu("SETTINGS", opts)
     if m == 0: return
-    theme = THEMES[m - 2] if m == 1 else THEMES[m - 2]
-    if m == 1:  # cycle to next theme
-        theme = THEMES[(THEMES.index(theme) + 1) % len(THEMES)]
+    theme = THEMES[m - 2]
     add_log("system", {"event": "theme changed", "theme": theme})
     print(paint(f"  Theme set to: {theme}")); time.sleep(1)
 
 # ---------- MAIN ----------
 def main():
     keys = setup_keys()
-    role = None
-    while role is None: role = login(keys)
+    role = login(keys)
     init_wallet()
-    anim("LOADING CRYPTOFLEX CORE", 14, 0.08)
+    anim("LOADING CRYPTOFLEX CORE", 14, 0.25)
     while True:
         clear(); banner()
         print(paint(f"  == MAIN MENU ==  (logged in as: {role})\n"))
@@ -406,7 +439,7 @@ def main():
         except ValueError: continue
         if m == 0:
             if input("  Exit? (y/n): ").lower() == "y":
-                anim("SHUTTING DOWN", 8, 0.08); break
+                anim("SHUTTING DOWN", 8, 0.25); break
         elif m == 1: tx_spoof()
         elif m == 2: sniffer()
         elif m == 3: wallet()
