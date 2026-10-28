@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-# ================= CRYPTOFLEX v6.0 :: LIVE SIMULATED FLEX ENGINE =================
-import os, sys, json, time, random, string, datetime, urllib.request, urllib.error, urllib.parse
+# ================= CRYPTOFLEX v7.0 :: LIVE SIMULATED FLEX ENGINE =================
+import os, sys, json, time, random, string, datetime, urllib.request
 
 DATA_DIR = os.path.expanduser("~/cryptoflex")
 os.makedirs(DATA_DIR, exist_ok=True)
-KEY_FILE, WALLET_FILE, LOG_FILE, CACHE_FILE = (os.path.join(DATA_DIR, f) for f in
-    ("keys.json", "wallet.json", "logs.json", "price_cache.json"))
+KEY_FILE, WALLET_FILE, LOG_FILE, CACHE_FILE, CONF_FILE = (os.path.join(DATA_DIR, f) for f in
+    ("keys.json", "wallet.json", "logs.json", "price_cache.json", "config.json"))
 
 # ================= THEMES =================
 THEMES = ["blue", "green", "cyan", "red", "purple", "yellow", "rainbow", "ice"]
@@ -35,6 +35,115 @@ BANNER = r"""
  / ____/ /___/ __/  / /___  / ____/ // / / /  |_|_/_/ |_/____|/____/
 /_/    \____/____/  \____/ /_/   /_//_/ /_/ ========================>
 """
+
+# ================= SECTION ASCII ART (unique page per option) =================
+ASCII_ART = {
+"TOOLS": r"""
+  _______ _____ _____ __  __ 
+ |__   __|_   _|_   _|  \/  |
+    | |    | |   | | | \  / |
+    | |    | |   | | | |\/| |
+    | |   _| |_ _| |_| |  | |
+    |_|  |_____|_____|_|  |_|
+""",
+"WALLET": r"""
+  __        ___    _ _  __        __    _     
+  \ \      / / \  | | |/ /  __ _ / _|  | |__  
+   \ \ /\ / / _ \ | | ' /  / _` | |_   | '_ \ 
+    \ V  V / ___ \| | . \ | (_| |  _|  | |_) |
+     \_/\_/_/   \_\_|_|\_\ \__,_|_|_(_)|_.__/ 
+""",
+"PORTFOLIO": r"""
+   ___  _   _ _____ ___ _     ___ _____   _   _ ___ ___ ___  _  _ ___
+  | _ \:|_| |_   _| __:|:|   |_ _|_   _| :| | | | __| __| _ \| \| | __|
+  |  _/ | | | | | | _||_  _|  | |  | |    | |_| | _|| _|| v /|  ' | _|
+  |_|   \_/  |_| |___| |_|   |___| |_|     \___/|___|___|_|_\|_|\_|___|
+""",
+"MARKET": r"""
+  __  __    _    ____  __  ___ _   _ 
+ |  \/  |  / \  |  _ \|  \/  | | | |
+ | |\/| | / _ \ | |_) | |\/| | | | |
+ | |  | |/ ___ \|  _ <| |  | | |_| |
+ |_|  |_/_/   \_\_| \_\_|  |_|\___/ 
+""",
+"MINER": r"""
+  __  __ ___ _  _ _____ ___ ___    ___ _    ___ ___  ___ __  __ ___ _  _   _   
+ |  \/  |_ _| \| |_   _|_ _/ __|  |_ _| |  | __| _ \|_ _|  \/  |_ _| \| | /_\  
+ | |\/| || || .  | | |  | | (__    | || |__| _||   / | || |\/| || ||  ' |/ _ \ 
+ |_|  |_|___|_|\_| |_| |___\___|  |___|____|___|_|_\|___|_|  |_|___|_|\_|_/_/  
+""",
+"DRAINER": r"""
+  ____  _____ _   _ _____ _____ _____ ____  
+ |  _ \| ____| \ | |_   _|_   _| ____|  _ \ 
+ | | | |  _| |  \| | | |   | | |  _| | |_) |
+ | |_| | |___| |\  | | |   | | | |___|  _ < 
+ |____/|_____|_| \_| |_|   |_| |_____|_| \_\
+""",
+"SPOOF": r"""
+  ____  ___  ____   ___  ____    ____  ___   ___  ____  ____  ____
+ / ___|/ _ \|  _ \ / _ \|  _ \  / ___|/ _ \ / _ \|  _ \|  _ \|  _ \
+ \___ \(_) | |_) |(_) | | | | | \___ \(_) |(_) | |_) | |_) | |_) |
+  ___) \  _|  _ < \  _/| |_| |   ___) \  _| \  _/|  __/|  __/|  __/
+ |____/ |_| |_| \_\ |_| |____/   |____/|_|   |_| |_|   |_|   |_|
+""",
+"SNIFFER": r"""
+  ____  _   _ ___ _____ _    ___ _____ _   _ _____ 
+ / ___|| | | |_ _|_   _| |  |_ _|_   _| \ | | ____|
+ \___ \| | | || |  | | | |   | |  | | |  \| |  _|  
+  ___) | |_| || |  | | | |___| |  | | | |\  | |___ 
+ |____/ \___/|___| |_| |_____|___| |_| |_| \_|_____|
+""",
+"FORGE": r"""
+  ______  _____ ____  _   _ _____ _____ 
+ |  ____|/ ____|  _ \| | | |_   _| ____|
+ | |__  | (___ | |_) | | | | | | |  _|  
+ |  __|  \___ \|  _ <| | | | | | | |__  
+ | |____ ____) | | \ \ |_| | |_| |____| 
+ |______|_____/|_|  \_\___/  |___|_____|
+""",
+"ALERTS": r"""
+   ####  ###  #####  ###  ##### 
+  #     #   #   #   #   #   #   
+   ###  #####   #   #####   #   
+      # #   #   #   #   #   #   
+  ####  #   #   #   #   #   #   
+""",
+"LEADERBOARD": r"""
+  _    ___ _____ ___  _    ___ ___  ___  _    
+ | |  / __|_   _| _ \| |  |_ _|   \| _ \| |   
+ | |__\__ \ | | |   /| |__ | || |) |   /| |__ 
+ |____|___/ |_| |_|_\|____|___|___/|_|_\|____|
+""",
+"PULSE": r"""
+   ____  _   _ _____ _     ___ _   _ _____ 
+  / ___|| | | | ____| |   |_ _| \ | | ____|
+ | |  _| | | |  _|   |     | ||  \| |  _|  
+ | |_| | |_| | |___  |___  | || |\  | |___ 
+  \____|\___/|_____|_____|___|_| \_|_____|
+""",
+"LOGS": r"""
+  _     ___ ____ _   _  _   _ ____  _   _ ____  
+ | |   |_ _|  _ \ | | |/ / | | |  _ \| | | |  _ \ 
+ | |    | || |_) | | | ' /  | | | |_) | | | | | | |
+ | |___ | ||  _ <| |_| . \  |_| |  _ <| |_| | |_| |
+ |_____|___|_| \_\____|_|\_\ ___/|_| \_\____/|____/ 
+""",
+"SETTINGS": r"""
+  ____  _____ ____  ____    _    ____  _____ ____  
+ / ___|| ____|  _ \|  _ \  / \  |  _ \| ____|  _ \ 
+ \___ \|  _| | |_) | |_) |/ _ \ | |_) |  _| | |_) |
+  ___) | |___|  _ <|  _ </ ___ \|  _ <| |___|  _ < 
+ |____/|_____|_| \_\_| \_/_/   \_\_| \_\_____|_| \_\
+""",
+"ADMIN": r"""
+    _    _   _ ____  ___ _____ 
+   / \  | \ | |  _ \|_ _| ____|
+  / _ \ |  \| | | | | | |  _|  
+ / ___ \| |\  | |_| | | | |___ 
+/_/   \_\_| \_|____/ |___|_____|
+""",
+}
+
 def header():
     w = load(WALLET_FILE, None)
     total, top_name, top_amt = 0.0, "-", 0.0
@@ -44,18 +153,46 @@ def header():
             total += usd
             if usd > top_amt: top_amt, top_name = usd, f"{b:g} {c}"
     print(gradient(BANNER))
-    print(f"  {OK}{BOLD}WALLET TOTAL:{RESET} ${total:,.2f}   {OK}{BOLD}TOP ASSET:{RESET} {top_name}   "
-          f"{DIM}[{datetime.datetime.now().strftime('%H:%M:%S')}]{RESET}\n")
+    cur = CURRENCIES.get(currency, currency.upper())
+    print(f"  {OK}{BOLD}TOTAL:{RESET} {fmt_money(total)}   {OK}{BOLD}TOP ASSET:{RESET} {top_name}   "
+          f"{DIM}[{datetime.datetime.now().strftime('%H:%M:%S')}]{RESET}   {WARN}{cur}{RESET}\n")
 
 def clear(): os.system("clear" if os.name != "nt" else "cls")
 
-# ================= STORAGE =================
+# ================= STORAGE / CONFIG =================
 def load(f, default):
     try:
         with open(f) as fh: return json.load(fh)
     except Exception: return default
 def save(f, d):
     with open(f, "w") as fh: json.dump(d, fh, indent=2)
+
+config = load(CONF_FILE, {})
+
+# ================= 20 FIAT CURRENCIES =================
+CURRENCIES = {"usd": "US Dollar $", "eur": "Euro €", "gbp": "British Pound £", "jpy": "Japanese Yen ¥",
+              "cad": "Canadian Dollar C$", "aud": "Australian Dollar A$", "chf": "Swiss Franc ₣",
+              "cny": "Chinese Yuan ¥", "inr": "Indian Rupee ₹", "brl": "Brazilian Real R$",
+              "rub": "Russian Ruble ₽", "krw": "Korean Won ₩", "sgd": "Singapore Dollar S$",
+              "hkd": "Hong Kong Dollar HK$", "nzd": "NZ Dollar NZ$", "sek": "Swedish Krona kr",
+              "nok": "Norwegian Krone kr", "try": "Turkish Lira ₺", "mxn": "Mexican Peso $",
+              "zar": "South African Rand R"}
+currency = config.get("currency", "usd")
+SYMBOLS = {"usd": "$", "eur": "€", "gbp": "£", "jpy": "¥", "cad": "C$", "aud": "A$", "chf": "₣",
+           "cny": "¥", "inr": "₹", "brl": "R$", "rub": "₽", "krw": "₩", "sgd": "S$", "hkd": "HK$",
+           "nzd": "NZ$", "sek": "kr", "nok": "kr", "try": "₺", "mxn": "$", "zar": "R"}
+
+def fmt_money(v):
+    sym = SYMBOLS.get(currency, "$")
+    if abs(v) >= 1000: return f"{sym}{v:,.2f}"
+    if abs(v) >= 1: return f"{sym}{v:,.4f}".rstrip("0").rstrip(".")
+    return f"{sym}{v:.8f}".rstrip("0")
+
+def set_currency(new_cur):
+    global currency
+    currency = new_cur
+    config["currency"] = new_cur
+    save(CONF_FILE, config)
 
 # ================= LIVE DATA (FREE PUBLIC APIS) =================
 HTTP_HEADERS = {"User-Agent": "Mozilla/5.0 (Terminal; CryptoFlex Sim)"}
@@ -68,7 +205,6 @@ def http_json(url, timeout=8):
     except Exception:
         return None
 
-# --- LIVE PRICES: CoinGecko free API, 60s cache, offline fallback ---
 CG_IDS = {"BTC": "bitcoin", "ETH": "ethereum", "USDT": "tether", "USDC": "usd-coin",
           "BNB": "binancecoin", "SOL": "solana", "XRP": "ripple", "DOGE": "dogecoin",
           "LTC": "litecoin", "TRX": "tron", "BCH": "bitcoin-cash", "ADA": "cardano",
@@ -79,27 +215,28 @@ FALLBACK_PRICES = {"BTC": 67000, "ETH": 3400, "USDT": 1, "USDC": 1, "BNB": 610, 
                    "XRP": 0.62, "DOGE": 0.16, "LTC": 85, "TRX": 0.13, "BCH": 420, "ADA": 0.45,
                    "AVAX": 28, "MATIC": 0.52, "DOT": 4.2, "SHIB": 0.000018, "PEPE": 0.000009,
                    "MONERO": 155, "TON": 5.3, "ARB": 0.78}
-_price_cache = load(CACHE_FILE, {})  # {sym: {"price": x, "chg": y, "ts": t}}
+_price_cache = load(CACHE_FILE, {})
 
 def refresh_prices(force=False):
-    """Bulk-fetch all supported coin prices + 24h change from CoinGecko (free)."""
+    """Fetch all coin prices + 24h change in the ACTIVE fiat currency. 60s cache."""
     global _price_cache
     if not force and _price_cache and time.time() - max(v["ts"] for v in _price_cache.values()) < 60:
         return True
     ids = ",".join(CG_IDS.values())
-    d = http_json(f"https://api.coingecko.com/api/v3/simple/price?ids={ids}&vs_currencies=usd&include_24hr_change=true")
+    url = (f"https://api.coingecko.com/api/v3/simple/price?ids={ids}"
+           f"&vs_currencies={currency}&include_24hr_change=true")
+    d = http_json(url)
     if not d: return False
     rev = {v: k for k, v in CG_IDS.items()}
     for cid, data in d.items():
         sym = rev.get(cid)
-        if sym and "usd" in data:
-            _price_cache[sym] = {"price": data["usd"], "chg": data.get("usd_24h_change", 0.0),
-                                 "ts": time.time()}
+        if sym and currency in data:
+            _price_cache[sym] = {"price": data[currency], "chg": data.get(f"{currency}_24h_change", 0.0),
+                                 "ts": time.time(), "cur": currency}
     save(CACHE_FILE, _price_cache)
     return True
 
 def live_price(sym):
-    """Live price if fresh, else last cached, else fallback. Never crashes."""
     p = _price_cache.get(sym)
     if p and time.time() - p["ts"] < 300: return p["price"]
     refresh_prices()
@@ -110,42 +247,32 @@ def live_change(sym):
     p = _price_cache.get(sym)
     return p.get("chg", 0.0) if p else 0.0
 
-# --- LIVE BALANCES: read-only public chain indexes ---
 def real_balance(addr, chain):
-    """Returns (balance, tx_count) or None. BTC/ETH/LTC/BCH/DOGE via public APIs."""
     if chain == "BTC":
         d = http_json(f"https://blockstream.info/api/address/{addr}")
         if d and "chain_stats" in d:
             bal = (d["chain_stats"]["funded_txo_sum"] - d["chain_stats"]["spent_txo_sum"]) / 1e8
             return bal, d["chain_stats"]["tx_count"]
-    elif chain == "LTC":
-        d = http_json(f"https://api.blockcypher.com/v1/ltc/main/addrs/{addr}/balance")
-        if d and "balance" in d: return d["balance"] / 1e8, d.get("n_tx", 0)
-    elif chain == "BCH":
-        d = http_json(f"https://api.blockcypher.com/v1/bch/main/addrs/{addr}/balance")
-        if d and "balance" in d: return d["balance"] / 1e8, d.get("n_tx", 0)
-    elif chain == "DOGE":
-        d = http_json(f"https://api.blockcypher.com/v1/doge/main/addrs/{addr}/balance")
-        if d and "balance" in d: return d["balance"] / 1e8, d.get("n_tx", 0)
     elif chain == "ETH":
         d = http_json(f"https://api.blockcypher.com/v1/eth/main/addrs/{addr}/balance")
         if d and "balance" in d: return d["balance"] / 1e18, d.get("n_tx", 0)
+    elif chain in ("LTC", "BCH", "DOGE"):
+        net = {"LTC": "ltc/main", "BCH": "bch/main", "DOGE": "doge/main"}[chain]
+        d = http_json(f"https://api.blockcypher.com/v1/{net}/addrs/{addr}/balance")
+        if d and "balance" in d: return d["balance"] / 1e8, d.get("n_tx", 0)
     return None
 
 def real_eth_tokens(addr):
-    """ERC-20 token holdings for an ETH address via Ethplorer free API (read-only)."""
     d = http_json(f"https://api.ethplorer.io/getAddressInfo/{addr}?apiKey=freekey")
     if not d: return []
     out = []
     for t in (d.get("tokens") or [])[:12]:
         info = t.get("tokenInfo", {})
         dec = int(info.get("decimals") or 18)
-        raw = int(t.get("rawBalance") or 0)
-        bal = raw / (10 ** dec)
-        sym = info.get("symbol", "???")
-        price = info.get("price", {})
+        bal = int(t.get("rawBalance") or 0) / (10 ** dec)
+        price = info.get("price") or {}
         usd = (price.get("rate") or 0) * bal if isinstance(price, dict) else 0
-        out.append({"sym": sym, "balance": bal, "usd": round(usd, 2)})
+        out.append({"sym": info.get("symbol", "???"), "balance": bal, "usd": round(usd, 2)})
     return out
 
 def detect_chain(addr):
@@ -153,7 +280,7 @@ def detect_chain(addr):
     if a.startswith("0x") and len(a) == 42: return "ETH"
     if a.startswith(("bc1", "1", "3")) and 26 <= len(a) <= 62: return "BTC"
     if a.startswith(("L", "M")) and len(a) == 34: return "LTC"
-    if a.startswith(("q", "bitcoincash")) : return "BCH"
+    if a.lower().startswith(("q", "bitcoincash")): return "BCH"
     if a.startswith("D") and len(a) == 34: return "DOGE"
     if a.startswith("T") and len(a) == 34: return "TRX"
     if a.startswith("addr1"): return "ADA"
@@ -175,7 +302,7 @@ def anim(title, frames=18, delay=0.4, sub=None, style="bar"):
         if style == "pulse":
             gfx = paint("◉" * (1 + i % 8) + DIM + "○" * (8 - i % 8) + RESET)
         elif style == "wave":
-            off = i % len(wave); wv = wave[-off:] + wave[:-off]; gfx = paint(wv[:16])
+            off = i % len(wave); gfx = paint((wave[-off:] + wave[:-off])[:16])
         elif style == "hexwall":
             gfx = paint("".join(random.choice("0123456789abcdef") for _ in range(10)))
         else:
@@ -185,17 +312,17 @@ def anim(title, frames=18, delay=0.4, sub=None, style="bar"):
     sys.stdout.write("\r" + " " * 110 + "\r")
     print(f"  {OK}✔{RESET} {paint(title)}")
 
-def node_scan(title="ESTABLISHING SECURE CHANNEL"):
+def node_scan(title="ESTABLISHING SECURE CHANNEL", n=6, delay=0.7):
     print(f"  {paint(title)}")
-    for _ in range(6):
+    for _ in range(n):
         ip = ".".join(str(random.randint(2, 254)) for _ in range(4))
         port = random.choice([8333, 8334, 30303, 9050, 50001])
         lat = random.uniform(4, 260)
         flag = OK if lat < 60 else WARN if lat < 150 else BAD
         sys.stdout.write(f"\r    node {ip:<15}:{port}  {flag}▲ {lat:5.1f} ms{RESET}   ")
-        sys.stdout.flush(); time.sleep(0.7)
+        sys.stdout.flush(); time.sleep(delay)
     sys.stdout.write("\r" + " " * 70 + "\r")
-    print(f"    {OK}✔ 6 peers connected{RESET}")
+    print(f"    {OK}✔ {n} peers connected{RESET}")
 
 def matrix_rain(rows=8, cols=48, delay=0.35):
     trail = {}
@@ -213,8 +340,7 @@ def matrix_rain(rows=8, cols=48, delay=0.35):
 def block_stream(n=8, delay=0.5):
     print(f"  {paint('STREAMING BLOCKS')}")
     for _ in range(n):
-        h = fake_txid()
-        sys.stdout.write(f"\r    ◼ block {random.randint(800000,930000)} :: {paint(h[:44])}   ")
+        sys.stdout.write(f"\r    ◼ block {random.randint(800000,930000)} :: {paint(fake_txid()[:44])}   ")
         sys.stdout.flush(); time.sleep(delay)
     sys.stdout.write("\r" + " " * 90 + "\r")
     print(f"    {OK}✔ chain synced{RESET}")
@@ -236,15 +362,28 @@ def big_win(text="DRAINER COMPLETE"):
 """
     clear()
     for i in range(6):
-        print(art); time.sleep(0.45); clear()
+        print(paint(art)); time.sleep(0.45); clear()
     print(paint(art))
     print(f"  {OK}{BOLD}>>> {text} <<< {RESET}")
     for _ in range(10):
         sys.stdout.write(paint("◆ ")); sys.stdout.flush(); time.sleep(0.15)
     print()
 
+def page(title):
+    """Section page: unique ASCII art header."""
+    clear(); header()
+    art = ASCII_ART.get(title)
+    if art: print(gradient(art.strip("\n") + "\n"))
+
 def yn(prompt):
-    return input(f"  {paint(prompt)} (y/n): ").strip().lower() == "y"
+    return input(f"  {paint(prompt)} (y/n): ").strip().lower() in ("y", "yes")
+
+def ask_num(prompt, default=0.0, cast=float):
+    try:
+        v = input(f"  {prompt}: ").strip()
+        return cast(v) if v else default
+    except ValueError:
+        return default
 
 # ================= FAKE DATA =================
 def fake_txid(): return "".join(random.choice("0123456789abcdef") for _ in range(64))
@@ -259,12 +398,7 @@ def fake_addr(chain):
     return pre + "".join(random.choice(string.ascii_letters + string.digits)
                          for _ in range(max(n - len(pre), 8)))
 
-COIN_NAMES = {"BTC": "Bitcoin", "ETH": "Ethereum", "USDT": "Tether", "USDC": "USD Coin",
-              "BNB": "BNB", "SOL": "Solana", "XRP": "XRP", "DOGE": "Dogecoin", "LTC": "Litecoin",
-              "TRX": "Tron", "BCH": "Bitcoin Cash", "ADA": "Cardano", "AVAX": "Avalanche",
-              "MATIC": "Polygon", "DOT": "Polkadot", "SHIB": "Shiba Inu", "PEPE": "Pepe",
-              "MONERO": "Monero", "TON": "Toncoin", "ARB": "Arbitrum"}
-COINS = list(CG_IDS.keys())  # all coins now live-priced
+COINS = list(CG_IDS.keys())
 NETWORKS = {"BTC": "Bitcoin Mainnet", "ETH": "Ethereum Mainnet", "USDT": "ERC-20 / TRC-20",
             "USDC": "ERC-20", "BNB": "BEP-20", "SOL": "Solana Mainnet", "XRP": "XRP Ledger",
             "DOGE": "Dogecoin Mainnet", "LTC": "Litecoin Mainnet", "TRX": "Tron Mainnet",
@@ -282,29 +416,29 @@ def new_key():
     return "CFX-" + "".join(random.choice(string.ascii_uppercase + string.digits) for _ in range(4)) + "-" + \
            "".join(random.choice(string.ascii_uppercase + string.digits) for _ in range(4))
 
-# ================= KEY SYSTEM =================
+# ================= KEY SYSTEM (fast login) =================
 def setup_keys():
     if not os.path.exists(KEY_FILE):
         key = new_key()
         save(KEY_FILE, {"owner_key": key, "users": {}})
         clear(); matrix_rain(rows=6, delay=0.3)
         print(f"\n  {paint(BOLD + '  [ FIRST RUN SETUP ]')}")
-        time.sleep(2)
+        time.sleep(1.5)
         type_line("  Generating your master access key...")
-        anim("KEY GENERATION", 16, 0.5, style="hexwall")
+        anim("KEY GENERATION", 10, 0.4, style="hexwall")
         print(f"\n  {WARN}{BOLD}  MASTER ACCESS KEY: {key}{RESET}")
         print(f"  {DIM}  This is the ONLY admin key. Write it down!{RESET}")
-        time.sleep(4)
+        time.sleep(3)
         while True:
             ans = input(paint("\n  Key saved? (y/n): ")).strip().lower()
-            if ans == "y":
-                type_line("  Key confirmed. Locking in...", 0.05); time.sleep(2.5); break
-            elif ans == "n":
-                type_line("  Regenerating... save it this time!", 0.05); time.sleep(2.5)
+            if ans in ("y", "yes"):
+                type_line("  Key confirmed. Locking in...", 0.05); time.sleep(1.5); break
+            elif ans in ("n", "no"):
+                type_line("  Regenerating... save it this time!", 0.05); time.sleep(1.5)
                 key = new_key()
                 save(KEY_FILE, {"owner_key": key, "users": {}})
                 print(f"\n  {WARN}{BOLD}  NEW MASTER ACCESS KEY: {key}{RESET}")
-                time.sleep(4)
+                time.sleep(3)
             else:
                 print("  Please type 'y' or 'n'.")
     return load(KEY_FILE, None)
@@ -313,31 +447,32 @@ def login(keys):
     for attempt in range(5):
         clear(); header()
         print(paint(f"  ══ ACCESS TERMINAL ══  attempt {attempt + 1}/5\n"))
-        anim("HANDSHAKE", 6, 0.45, sub=["tls exchange", "key derivation"], style="pulse")
         k = input(paint("  Enter Access Key: ")).strip()
         if k == keys["owner_key"]:
-            print(f"  {OK}✔ Access granted — welcome, admin.{RESET}"); time.sleep(2.5)
+            anim("VERIFYING", 3, 0.15, sub=["key hash match"], style="pulse")
+            print(f"  {OK}✔ Access granted — welcome, admin.{RESET}"); time.sleep(1.2)
             return "admin"
         if k in keys["users"]:
-            print(f"  {OK}✔ Access granted — role: {keys['users'][k]}{RESET}"); time.sleep(2.5)
+            anim("VERIFYING", 3, 0.15, sub=["key hash match"], style="pulse")
+            print(f"  {OK}✔ Access granted — role: {keys['users'][k]}{RESET}"); time.sleep(1.2)
             return keys["users"][k]
         left = 4 - attempt
         if left > 0:
-            print(f"  {BAD}✘ Invalid key.{RESET} {left} attempt(s) remaining."); time.sleep(3)
+            print(f"  {BAD}✘ Invalid key.{RESET} {left} attempt(s) remaining."); time.sleep(2)
         else:
-            print(f"  {BAD}{BOLD}[LOCKED] Too many failed attempts.{RESET}"); time.sleep(3)
-            anim("LOCKING DOWN", 12, 0.5, sub=["wiping session", "sealing vault"], style="hexwall")
+            print(f"  {BAD}{BOLD}[LOCKED] Too many failed attempts.{RESET}"); time.sleep(2)
+            anim("LOCKING DOWN", 10, 0.4, sub=["wiping session", "sealing vault"], style="hexwall")
             if yn("Generate a NEW master key? Resets all user keys."):
                 nk = new_key()
                 save(KEY_FILE, {"owner_key": nk, "users": {}})
                 add_log("system", {"event": "emergency key reset"})
                 print(f"\n  {WARN}{BOLD}  [RECOVERY] NEW MASTER KEY: {nk}{RESET}")
-                print(f"  {DIM}  All user keys wiped. Save this NOW!{RESET}")
-                time.sleep(4); input(paint("  Key saved? (y/n): ")).strip().lower()
+                time.sleep(3)
+                input(paint("  Key saved? (y/n): ")).strip().lower()
             else:
                 print(paint("  No recovery. Closing..."))
             add_log("system", {"event": "lockout", "reason": "5 failed key attempts"})
-            time.sleep(2); sys.exit(0)
+            time.sleep(1.5); sys.exit(0)
     return None
 
 # ================= WALLET =================
@@ -348,14 +483,13 @@ def init_wallet():
     w = load(WALLET_FILE, None)
     if w: return w
     coin = random.choice(COINS)
-    w = {"address": fake_addr("BTC" if coin not in ("ETH",) else "ETH"), "primary": coin,
+    w = {"address": fake_addr(CHAINS.get(coin, "ETH")), "primary": coin,
          "balances": {coin: 1.0}, "txs": [], "pending": [], "faucet": None}
     save(WALLET_FILE, w); return w
 
 # ================= MENU =================
 def menu(title, options, footer=True):
-    clear(); header()
-    print(paint(f"  ══ {title} ══\n"))
+    page(title)
     for i, label in enumerate(options, 1):
         col = OK if i % 2 else WARN
         print(f"  {paint('[')}{col}{i}{RESET}{paint(']')} {label}")
@@ -372,12 +506,11 @@ def pick(prompt, choices):
 def price_tag(sym):
     ch = live_change(sym)
     col = OK if ch >= 0 else BAD
-    return f"{paint(sym)} ${live_price(sym):,.6g} {col}{ch:+.1f}%{RESET}"
+    return f"{paint(sym)} {fmt_money(live_price(sym))} {col}{ch:+.1f}%{RESET}"
 
-# ================= TOOLS: TXID FORGE =================
+# ================= TOOLS =================
 def txid_gen():
-    clear(); header()
-    print(paint("  ══ TXID / BLOCK HASH FORGE ══\n"))
+    page("FORGE")
     anim("FORGING HASHES", 14, 0.55, sub=["seeding entropy", "double-SHA passes", "hex-dressing"], style="hexwall")
     for _ in range(3):
         print(f"  {paint('TXID')}   {fake_txid()}")
@@ -386,18 +519,16 @@ def txid_gen():
     add_log("spoof", {"type": "hash", "txid": fake_txid()})
     input("\n  Enter...")
 
-# ================= TOOLS: TX SPOOF =================
 def tx_spoof():
-    clear(); header()
-    print(paint("  ══ SPOOFED TX BROADCAST ══\n"))
+    page("SPOOF")
     coin = pick("Select network asset:", COINS)
-    amt = float(input("  Amount: ") or 0)
+    amt = ask_num("Amount")
     sender = input("  Sender (blank = random): ").strip() or fake_addr(CHAINS.get(coin, "ETH"))
     recv = input("  Recipient: ").strip() or fake_addr(CHAINS.get(coin, "ETH"))
     method = pick("Injection method:", ["mempool-inject", "double-spend", "flash-broadcast", "relay-flood"])
     print()
-    type_line(f"  {amt} {coin} {DIM}(${amt * live_price(coin):,.2f}){RESET} | {NETWORKS[coin]} | {method}", 0.04)
-    anim("BROADCASTING", 22, 0.55, sub=["signing payload", "flooding relays", "awaiting first confirm"], style="wave")
+    type_line(f"  {amt} {coin} {DIM}({fmt_money(amt * live_price(coin))}){RESET} | {NETWORKS[coin]} | {method}", 0.04)
+    anim("BROADCASTING", 22, 0.55, sub=["signing payload", "flooding relays", "awaiting confirm"], style="wave")
     node_scan(); block_stream(6, 0.55)
     if random.random() < 0.5:
         txid = fake_txid()
@@ -413,10 +544,8 @@ def tx_spoof():
         add_log("spoof", {"coin": coin, "amount": amt, "status": "REJECTED", "method": method})
     input("\n  Enter...")
 
-# ================= TOOLS: SNIFFER =================
 def sniffer():
-    clear(); header()
-    print(paint("  ══ NETWORK RECON SCANNER ══\n"))
+    page("SNIFFER")
     url = input("  Target endpoint: ").strip() or "unknown"
     addr = input("  Address: ").strip() or fake_addr("BTC")
     anim("DEEP SCANNING", 24, 0.6, sub=["probing endpoints", "indexing leaks", "correlating records"], style="hexwall")
@@ -442,47 +571,40 @@ def sniffer():
         add_log("sniffer", {"url": url, "addr": addr, "result": "MISS"})
     input("\n  Enter...")
 
-# ================= TOOLS: MINING RIG =================
 def mining_rig():
+    page("MINER")
     w = load(WALLET_FILE, init_wallet())
-    clear(); header()
-    print(paint("  ══ MINING RIG ══\n"))
     coin = pick("Coin to mine:", COINS)
     method = pick("Mining method:", ["solo", "pool", "merged-mining", "stratum-tcp"])
-    try: duration = float(input("  Session duration in minutes (0 = until Ctrl+C): ") or 0)
-    except ValueError: duration = 0
+    duration = ask_num("Session duration in minutes", 5.0)
+    if duration <= 0: duration = 5.0
     hashrate = random.uniform(80, 420)
     print(f"\n  {paint('RIG')} CFX-RIG-01 | {price_tag(coin)} | {OK}{hashrate:.1f} MH/s{RESET} | {paint(method)}")
-    print(f"  {DIM}50 shares per payout. Ctrl+C stops anytime, keeps earnings.{RESET}\n")
+    print(f"  {DIM}50 shares per payout. Session runs {duration} minutes then auto-stops.{RESET}\n")
     shares, target, earned = 0, 50, 0.0
-    end = time.time() + duration * 60 if duration > 0 else None
-    try:
-        while end is None or time.time() < end:
-            anim(f"HASHING SHARE {shares + 1}/{target}", 4, 0.12,
-                 sub=["rolling nonces", "checking difficulty"], style="wave")
-            shares += 1
-            if random.random() < 0.05:
-                print(f"  {WARN}◆ lucky partial solution, nonce={random.randint(100000,999999)}{RESET}")
-            if shares >= target:
-                shares = 0
-                payout = round(random.uniform(0.0001, 0.01), 8)
-                txid = fake_txid()
-                w["balances"][coin] = round(w["balances"].get(coin, 0) + payout, 8)
-                w["txs"].append({"dir": "IN", "coin": coin, "amount": payout, "txid": txid,
-                                 "from": "mining-pool", "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M")})
-                earned += payout; save(WALLET_FILE, w)
-                print(f"  {OK}{BOLD}◆ BLOCK MINED{RESET} +{payout} {coin}  ~${earned * live_price(coin):,.4f} session @ live price")
-                time.sleep(1.2)
-        print(f"\n  {paint('SESSION COMPLETE')} earnings: {round(earned, 8)} {coin} (~${earned * live_price(coin):,.4f})")
-    except KeyboardInterrupt:
-        print(f"\n  {paint('RIG OFFLINE')} session earnings: {round(earned, 8)} {coin}")
+    end = time.time() + duration * 60
+    while time.time() < end:
+        anim(f"HASHING SHARE {shares + 1}/{target}", 4, 0.12,
+             sub=["rolling nonces", "checking difficulty"], style="wave")
+        shares += 1
+        if random.random() < 0.05:
+            print(f"  {WARN}◆ lucky partial solution, nonce={random.randint(100000,999999)}{RESET}")
+        if shares >= target:
+            shares = 0
+            payout = round(random.uniform(0.0001, 0.01), 8)
+            txid = fake_txid()
+            w["balances"][coin] = round(w["balances"].get(coin, 0) + payout, 8)
+            w["txs"].append({"dir": "IN", "coin": coin, "amount": payout, "txid": txid,
+                             "from": "mining-pool", "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M")})
+            earned += payout; save(WALLET_FILE, w)
+            print(f"  {OK}{BOLD}◆ BLOCK MINED{RESET} +{payout} {coin}  {fmt_money(earned * live_price(coin))} session")
+            time.sleep(1.0)
+    print(f"\n  {paint('SESSION COMPLETE')} earnings: {earned:.8f} {coin} ({fmt_money(earned * live_price(coin))})")
     add_log("system", {"event": "mining session", "coin": coin, "earned": earned, "method": method})
     input("\n  Enter...")
 
-# ================= TOOLS: WALLET DRAINER (LIVE) =================
 def drain_flow(w, coin, total_amt, n_mixers, validate):
-    clear(); header()
-    print(paint("  ══ DRAIN FLOW ══\n"))
+    page("DRAINER")
     mixers = [fake_addr(CHAINS.get(coin, "ETH")) for _ in range(max(n_mixers, 1))]
     if validate:
         anim("VALIDATING MIXER WALLETS", 10, 0.5, sub=["pinging nodes", "checking balances"], style="pulse")
@@ -510,45 +632,56 @@ def drain_flow(w, coin, total_amt, n_mixers, validate):
     input("\n  Enter...")
 
 def drainer():
-    clear(); header()
-    print(paint("  ══ WALLET DRAINER ══\n"))
+    page("DRAINER")
     url = input("  Target URL / platform: ").strip() or "unknown"
     addr = input("  Wallet address: ").strip()
     chain = detect_chain(addr) if addr else None
     tokens = []
     if addr and chain:
         anim("CONTACTING LIVE CHAIN INDEX", 12, 0.5,
-             sub=["blockstream", "blockcypher", "ethplorer", "rest-api"], style="pulse")
+             sub=["blockstream", "blockcypher", "ethplorer"], style="pulse")
         real = real_balance(addr, chain)
         if real is not None:
             bal, txs = real
-            px = live_price(chain)
             print(f"  {OK}{BOLD}[LIVE CHAIN DATA]{RESET} {paint(chain)}")
-            print(f"   balance : {OK}{bal:g} {chain}{RESET}  {DIM}~${bal * px:,.2f} @ live price{RESET}")
+            print(f"   balance : {OK}{bal:g} {chain}{RESET}  {DIM}{fmt_money(bal * live_price(chain))}{RESET}")
             print(f"   txs     : {txs} on-chain")
         else:
             print(f"  {WARN}[!] index unreachable for {chain} — simulated profile{RESET}")
-            bal = round(random.uniform(0, 12), 4)
-            print(f"  {DIM}simulated balance: {bal} {chain}{RESET}")
         if chain == "ETH":
             anim("SCANNING TOKEN HOLDINGS", 10, 0.45, sub=["ethplorer index", "decoding ERC-20"], style="hexwall")
             tokens = real_eth_tokens(addr)
             if tokens:
                 print(f"  {OK}{BOLD}[LIVE TOKENS FOUND: {len(tokens)}]{RESET}")
                 for t in tokens:
-                    print(f"   {WARN}▸{RESET} {t['sym']:<8} {t['balance']:.4f}  {DIM}~${t['usd']}{RESET}")
+                    print(f"   {WARN}▸{RESET} {t['sym']:<8} {t['balance']:.4f}  {DIM}{fmt_money(t['usd'])}{RESET}")
             else:
                 print(f"  {DIM}no ERC-20 tokens found (or index offline){RESET}")
     else:
         print(f"  {DIM}address format not recognized — simulated profile mode{RESET}")
+
+    # ---- attack surface: yes asks for the actual item ----
     print(f"\n  {paint('── ATTACK SURFACE SELECTION ──')}")
-    has_platform = yn("Platform access available?")
-    has_seed     = yn("Seed phrase available?")
-    has_2fa      = yn("2FA code available?")
-    has_email    = yn("Email access available?")
-    has_pw       = yn("Password available?")
-    have = sum([has_platform, has_seed, has_2fa, has_email, has_pw])
+    collected = []
+    if yn("Platform access available?"):
+        plat = input("  Enter platform name: ").strip() or "unknown-platform"
+        collected.append(f"platform: {plat}")
+    if yn("Seed phrase available?"):
+        phrase = input("  Enter seed phrase (words): ").strip() or "twelve words recovered"
+        collected.append(f"seed phrase: {phrase}")
+    if yn("2FA code available?"):
+        code = input("  Enter 2FA code: ").strip() or str(random.randint(100000, 999999))
+        collected.append(f"2FA code: {code}")
+    if yn("Email access available?"):
+        email = input("  Enter email: ").strip() or "user@mail.com"
+        collected.append(f"email: {email}")
+    if yn("Password available?"):
+        pw = input("  Enter password: ").strip() or "hunter2"
+        collected.append(f"password: {pw}")
+    have = len(collected)
     print(f"\n  {paint('surface score')}: {have}/5")
+    if collected:
+        print(f"  {DIM}vectors loaded: {', '.join(c.split(':')[0] for c in collected)}{RESET}")
     if have < 2:
         print(f"  {BAD}✘ INSUFFICIENT SURFACE — need at least 2 access vectors. Aborting.{RESET}")
         add_log("drainer", {"url": url, "addr": addr, "surface": have, "result": "ABORTED"})
@@ -559,37 +692,33 @@ def drainer():
     if random.random() < 0.5:
         big_win("DRAINER COMPLETE")
         print(f"  {OK}{BOLD}✔ Keys extracted. Vault compromised.{RESET}")
-        add_log("drainer", {"url": url, "addr": addr, "surface": have, "result": "SUCCESS"})
+        for c in collected:
+            print(f"   {OK}▸{RESET} {c}")
+        add_log("drainer", {"url": url, "addr": addr, "surface": have,
+                            "vectors": collected, "result": "SUCCESS"})
         if yn("\n  Start wallet drain flow?"):
             options = COINS + [f"token:{t['sym']}" for t in tokens]
             sel = pick("Coin / token to drain:", options)
-            if sel.startswith("token:"):
-                coin, amt = sel[6:], float(input("  Amount: ") or 0)
-                add_log("drainer", {"stage": "token-drain", "token": coin, "amount": amt})
-                # token drains still route through mixer sim but tracked separately
-                coin = sel
-                amt_token = amt
-                # simulate using token symbol directly in flow
-                w = load(WALLET_FILE, init_wallet())
-                drain_flow(w, "ETH", amt, int(input("  How many mixer wallets: ") or 3), yn("Validate mixer wallets first?"))
-                return
-            amt = float(input("  Amount to drain: ") or 0)
-            n_mixers = int(input("  How many mixer wallets: ") or 3)
+            amt = ask_num("Amount to drain")
+            n_mixers = int(ask_num("How many mixer wallets", 3.0))
             validate = yn("Validate mixer wallets before mixing?")
-            drain_flow(load(WALLET_FILE, init_wallet()), coin, amt, n_mixers, validate)
+            if sel.startswith("token:"):
+                add_log("drainer", {"stage": "token-drain", "token": sel[6:], "amount": amt})
+                drain_flow(load(WALLET_FILE, init_wallet()), "ETH", amt, n_mixers, validate)
+            else:
+                drain_flow(load(WALLET_FILE, init_wallet()), sel, amt, n_mixers, validate)
     else:
         print(f"\n  {BAD}✘ DRAIN FAILED — signature guard tripped, session burned{RESET}")
         add_log("drainer", {"url": url, "addr": addr, "surface": have, "result": "FAILED"})
     input("\n  Enter...")
 
-# ================= TOOLS+ HUB =================
 def tools():
     while True:
-        m = menu("TOOLS +", ["TXID / Block Hash Forge",
-                             "Spoofed TX Broadcast",
-                             "Network Recon Scanner",
-                             "Wallet Drainer — live balances & tokens",
-                             "Mining Rig"])
+        m = menu("TOOLS", ["TXID / Block Hash Forge",
+                           "Spoofed TX Broadcast",
+                           "Network Recon Scanner",
+                           "Wallet Drainer — live balances & tokens",
+                           "Mining Rig"])
         if m == 0: return
         [None, txid_gen, tx_spoof, sniffer, drainer, mining_rig][min(m, 5)]()
 
@@ -615,16 +744,16 @@ def wallet():
             w = process_pending(load(WALLET_FILE, w)); save(WALLET_FILE, w)
             print()
             for c, b in w["balances"].items():
-                usd = b * live_price(c)
                 ch = live_change(c)
                 col = OK if ch >= 0 else BAD
-                print(f"   {paint(c):<10} {b:>14}  ${live_price(c):,.6g} {col}{ch:+.1f}%{RESET}  {DIM}~${usd:,.2f}{RESET}")
+                print(f"   {paint(c):<10} {b:>14}  {fmt_money(live_price(c))} {col}{ch:+.1f}%{RESET}  "
+                      f"{DIM}{fmt_money(b * live_price(c))}{RESET}")
             print(f"\n   {paint('Address')} {w['address']}")
             if w.get("pending"): print(f"   {WARN}⧗ pending incoming: {len(w['pending'])}{RESET}")
             input("\n  Enter..."); continue
         if m == 2:
             coin = pick("Asset:", list(w["balances"].keys()))
-            amt = float(input("  Amount: ") or 0)
+            amt = ask_num("Amount")
             if amt <= w["balances"].get(coin, 0):
                 to = input("  To address: ").strip() or fake_addr(CHAINS.get(coin, "ETH"))
                 split = yn("Split into small transactions?")
@@ -670,19 +799,15 @@ def wallet():
                 print(f"   {DIM}{t['time']}{RESET} {arrow} {t['amount']} {t['coin']}  {DIM}{t['txid'][:16]}...{RESET}")
             input("\n  Enter..."); continue
 
-# ================= HIDDEN BACKGROUND FAUCET =================
 def setup_faucet(w):
-    clear(); header()
+    page("WALLET")
     print(paint("  ══ PRIVATE CHANNEL ══\n"))
-    try:
-        per = float(input("  Total token amount: ") or 1)
-        n_tx = int(input("  Number of split transactions: ") or 1)
-        n_w = int(input("  Number of sending wallets: ") or 1)
-        delay = float(input("  Seconds between TXs: ") or 3)
-        coin = pick("Token:", COINS)
-    except Exception:
-        return
-    w["faucet"] = {"coin": coin, "total": per, "remaining": per, "splits": n_tx,
+    per = ask_num("Total token amount", 1.0)
+    n_tx = int(ask_num("Number of split transactions", 1.0))
+    n_w = int(ask_num("Number of sending wallets", 1.0))
+    delay = ask_num("Seconds between TXs", 3.0)
+    coin = pick("Token:", COINS)
+    w["faucet"] = {"coin": coin, "total": per, "remaining": per, "splits": max(n_tx, 1),
                    "wallets": max(n_w, 1), "delay": max(delay, 1.0), "next": time.time() + delay}
     add_log("system", {"event": "channel armed", "coin": coin, "total": per, "splits": n_tx})
     anim("ARMING CHANNEL", 8, 0.5, sub=["opening sockets", "handshakes", "queueing flows"], style="pulse")
@@ -711,66 +836,60 @@ def run_faucet(w):
     save(WALLET_FILE, w)
     return w
 
-# ================= PORTFOLIO (LIVE) =================
+# ================= PORTFOLIO =================
 def portfolio():
+    page("PORTFOLIO")
     refresh_prices()
     w = load(WALLET_FILE, init_wallet()); w = process_pending(w); save(WALLET_FILE, w)
-    clear(); header()
-    print(paint("  ══ PORTFOLIO ══ {DIM}(live prices via CoinGecko){RESET}\n".replace("{DIM}", DIM).replace("{RESET}", RESET)))
     total = 0
     for c, b in w["balances"].items():
         price = live_price(c); ch = live_change(c)
         col = OK if ch >= 0 else BAD
         usd = b * price; total += usd
-        print(f"   {paint(c):<12} {b:>12.4f}  ${price:,.6g} {col}{ch:+.1f}%{RESET}  {DIM}~${usd:,.2f}{RESET}")
-    print(f"\n   {paint(BOLD + 'TOTAL')}: ${total:,.2f}")
+        print(f"   {paint(c):<12} {b:>12.4f}  {fmt_money(price)} {col}{ch:+.1f}%{RESET}  {DIM}{fmt_money(usd)}{RESET}")
+    print(f"\n   {paint(BOLD + 'TOTAL')}: {fmt_money(total)}")
     print(f"\n  {paint('TOP MOVERS — LIVE 24H')}")
-    movers = sorted(_price_cache.items(), key=lambda kv: -abs(kv[1].get("chg", 0)))[:3] if _price_cache else []
+    movers = sorted(_price_cache.items(), key=lambda kv: -abs(kv[1].get("chg", 0)))[:3]
     if movers:
         for sym, p in movers:
             ch = p.get("chg", 0); col = OK if ch >= 0 else BAD
-            print(f"   {paint(sym):<12} ${p['price']:,.6g} {col}{ch:+.2f}%{RESET}")
+            print(f"   {paint(sym):<12} {fmt_money(p['price'])} {col}{ch:+.2f}%{RESET}")
     else:
-        print(f"   {DIM}offline — cached data unavailable{RESET}")
-    add_log("system", {"event": "portfolio viewed", "total_usd": round(total, 2)})
+        print(f"   {DIM}offline — no cached data{RESET}")
+    add_log("system", {"event": "portfolio viewed", "total": round(total, 2)})
     input("\n  Enter...")
 
-# ================= MARKET WATCH (new: live coin table) =================
+# ================= MARKET WATCH (fixed: clean aligned live table) =================
 def market_watch():
-    clear(); header()
-    print(paint("  ══ MARKET WATCH — LIVE ══\n"))
-    anim("FETCHING LIVE MARKET", 12, 0.4, sub=["coingecko api", "parsing 24h stats"], style="pulse")
+    page("MARKET")
     ok = refresh_prices(force=True)
-    if not ok:
-        print(f"  {BAD}[OFFLINE] falling back to cached/fallback prices{RESET}")
-    print(f"\n   {'ASSET':<12}{'PRICE':>16}{'24H':>10}   {DIM}source: {'LIVE' if ok else 'CACHE'}{RESET}")
+    src = "LIVE" if ok else "CACHE"
+    print(f"\n   {'ASSET':<10}{'PRICE':>16}{'24H':>10}   {DIM}source: {src} | fiat: {currency.upper()}{RESET}")
+    print(f"   {'─' * 46}")
     for sym in COINS:
         p = _price_cache.get(sym)
         price = p["price"] if p else FALLBACK_PRICES[sym]
         ch = p.get("chg", 0) if p else 0
         col = OK if ch >= 0 else BAD
-        print(f"   {paint(sym):<12}{price:>16,.6g} {col}{ch:>+9.1f}%{RESET}")
+        print(f"   {paint(sym):<22}{fmt_money(price):>16} {col}{ch:>+9.1f}%{RESET}")
         time.sleep(0.08)
     input("\n  Enter...")
 
-# ================= WHALE LEADERBOARD =================
+# ================= WHALES / ALERTS / PULSE =================
 def whales():
-    clear(); header()
-    print(paint("  ══ WHALE LEADERBOARD ══\n"))
+    page("LEADERBOARD")
     anim("SNIPING WHALE WALLETS", 14, 0.55, sub=["tracking clusters", "scoring holdings"], style="wave")
     rows = sorted([(fake_addr(random.choice(list(CHAINS.values()))), random.uniform(1, 9000)) for _ in range(8)],
                   key=lambda x: -x[1])
     for i, (a, v) in enumerate(rows, 1):
         medal = ["🥇", "🥈", "🥉"][i - 1] if i <= 3 else f"{i}."
-        print(f"   {medal} {a[:22]}...  {paint(f'${v:,.0f}')}")
+        print(f"   {medal} {a[:22]}...  {paint(fmt_money(v))}")
     me = load(WALLET_FILE, init_wallet())
-    print(f"\n   {paint('YOU')}: rank #{random.randint(9, 9999)} with ${wallet_total(me):,.2f}")
+    print(f"\n   {paint('YOU')}: rank #{random.randint(9, 9999)} with {fmt_money(wallet_total(me))}")
     input("\n  Enter...")
 
-# ================= PRICE ALERTS (LIVE) =================
 def alerts():
-    clear(); header()
-    print(paint("  ══ PRICE ALERT ENGINE ══\n"))
+    page("ALERTS")
     coin = pick("Asset to monitor:", COINS)
     anim("LINKING MARKET FEEDS", 12, 0.55, sub=["coingecko live", "subscribing ticker"], style="pulse")
     base = live_price(coin)
@@ -779,7 +898,7 @@ def alerts():
         p = live_price(coin)
         drift = (p - base) / base * 100 if base else 0
         col = OK if drift >= 0 else BAD
-        print(f"   tick {i + 1}: {coin} {col}${p:,.6g}{RESET} {DIM}({drift:+.2f}% since start){RESET}")
+        print(f"   tick {i + 1}: {coin} {col}{fmt_money(p)}{RESET} {DIM}({drift:+.2f}% since start){RESET}")
         time.sleep(1.6)
     ch = live_change(coin)
     if abs(ch) > 3:
@@ -790,24 +909,26 @@ def alerts():
         add_log("system", {"event": "price alert", "coin": coin, "chg": ch, "triggered": False})
     input("\n  Enter...")
 
-# ================= LIVE PULSE =================
 def live_pulse():
-    clear(); header()
-    print(paint("  ══ LIVE PULSE ══  {DIM}(Ctrl+C to exit){RESET}\n".replace("{DIM}", DIM).replace("{RESET}", RESET)))
-    try:
-        while True:
-            w = load(WALLET_FILE, init_wallet())
-            w = run_faucet(w); w = process_pending(w); save(WALLET_FILE, w)
-            tot = wallet_total(w)
-            sym = random.choice(COINS)
-            ch = live_change(sym)
-            col = OK if ch >= 0 else BAD
-            sys.stdout.write(
-                f"\r  {paint('Σ')} ${tot:>12,.2f}  {paint(sym)} ${live_price(sym):,.6g} {col}{ch:+.2f}%{RESET} "
-                f"{paint('pend')} {len(w.get('pending', []))}  {paint('txs')} {len(w['txs'])}   ")
-            sys.stdout.flush(); time.sleep(2)
-    except KeyboardInterrupt:
-        print("\n")
+    page("PULSE")
+    duration = ask_num("Dashboard duration in seconds", 30.0)
+    if duration <= 0: duration = 30.0
+    print(f"  {DIM}running for {duration}s...{RESET}")
+    end = time.time() + duration
+    while time.time() < end:
+        w = load(WALLET_FILE, init_wallet())
+        w = run_faucet(w); w = process_pending(w); save(WALLET_FILE, w)
+        tot = wallet_total(w)
+        sym = random.choice(COINS)
+        ch = live_change(sym)
+        col = OK if ch >= 0 else BAD
+        sys.stdout.write(
+            f"\r  {paint('Σ')} {fmt_money(tot):>16}  {paint(sym)} {fmt_money(live_price(sym))} {col}{ch:+.2f}%{RESET} "
+            f"{paint('pend')} {len(w.get('pending', []))}  {paint('txs')} {len(w['txs'])}   ")
+        sys.stdout.flush()
+        time.sleep(2)
+    print(f"\n  {paint('PULSE COMPLETE')}")
+    input("\n  Enter...")
 
 # ================= LOGS =================
 def view_logs():
@@ -815,11 +936,12 @@ def view_logs():
     while True:
         kinds = list(logs.keys())
         if not kinds:
-            clear(); header(); print("  No logs yet."); input("\n  Enter..."); return
-        m = menu("LOG ARCHIVE", [f"{k} — {len(logs[k])} entries" for k in kinds])
+            page("LOGS"); print("  No logs yet."); input("\n  Enter..."); return
+        m = menu("LOGS", [f"{k} — {len(logs[k])} entries" for k in kinds])
         if m == 0: return
         k = kinds[m - 1]
-        clear(); header(); print(paint(f"  ══ {k.upper()} ══\n"))
+        page("LOGS")
+        print(paint(f"  ══ {k.upper()} ══\n"))
         for e in logs[k][-30:]:
             print(f"   {DIM}{e['time']}{RESET} " + json.dumps({x: y for x, y in e.items() if x != 'time'})[:110])
         input("\n  Enter...")
@@ -827,7 +949,7 @@ def view_logs():
 # ================= ADMIN =================
 def admin_users(keys):
     while True:
-        m = menu("ADMIN CONSOLE", ["Create user key", "List users", "Revoke key", "Change user role"])
+        m = menu("ADMIN", ["Create user key", "List users", "Revoke key", "Change user role"])
         if m == 0:
             save(KEY_FILE, keys); return
         if m == 1:
@@ -861,26 +983,35 @@ def admin_users(keys):
             else: print(f"  {BAD}not found{RESET}")
             input("\n  Enter..."); continue
 
-# ================= SETTINGS =================
+# ================= SETTINGS (currency + theme) =================
 def settings():
-    global theme
-    opts = ["Cycle to next theme", "Force price cache refresh"] + \
-           [f"Use {t} theme" for t in THEMES if t != theme]
-    m = menu("SETTINGS", opts)
-    if m == 0: return
-    if m == 1:
-        theme = THEMES[(THEMES.index(theme) + 1) % len(THEMES)]
-    elif m == 2:
-        anim("SYNCING LIVE PRICES", 12, 0.4, sub=["coingecko", "blockstream", "ethplorer"], style="pulse")
-        ok = refresh_prices(force=True)
-        print(f"  {OK}✔ prices updated — {len(_price_cache)} coins live{RESET}" if ok
-              else f"  {BAD}✘ network unreachable — cache kept{RESET}")
-        add_log("system", {"event": "price refresh", "ok": ok})
-        input("\n  Enter..."); return
-    else:
-        theme = [t for t in THEMES if t != theme][m - 3]
-    add_log("system", {"event": "theme changed", "theme": theme})
-    print(paint(f"  Theme → {theme}")); time.sleep(1.5)
+    while True:
+        cur_opts = [f"Currency: {CURRENCIES.get(currency, currency)}"]
+        m = menu("SETTINGS", cur_opts + ["Cycle to next theme", "Force price cache refresh"] +
+                 [f"Use {t} theme" for t in THEMES if t != theme])
+        if m == 0: return
+        if m == 1:
+            new = pick("Select fiat currency (prices update live):", list(CURRENCIES.keys()))
+            set_currency(new)
+            anim("REVALUATING PORTFOLIO", 8, 0.35, sub=[f"coingecko vs {new}"], style="pulse")
+            refresh_prices(force=True)
+            print(f"  {OK}✔ Currency → {CURRENCIES[new]} — all values now in {SYMBOLS[new]}{RESET}")
+            add_log("system", {"event": "currency changed", "currency": new})
+            input("\n  Enter..."); continue
+        if m == 2:
+            global theme
+            theme = THEMES[(THEMES.index(theme) + 1) % len(THEMES)]
+        elif m == 3:
+            anim("SYNCING LIVE PRICES", 12, 0.4, sub=["coingecko", "blockstream", "ethplorer"], style="pulse")
+            ok = refresh_prices(force=True)
+            print(f"  {OK}✔ prices updated — {len(_price_cache)} coins live{RESET}" if ok
+                  else f"  {BAD}✘ network unreachable — cache kept{RESET}")
+            add_log("system", {"event": "price refresh", "ok": ok})
+            input("\n  Enter..."); continue
+        else:
+            theme = [t for t in THEMES if t != theme][m - 4]
+        add_log("system", {"event": "theme changed", "theme": theme})
+        print(paint(f"  Theme → {theme}")); time.sleep(1)
 
 # ================= MAIN =================
 def main():
@@ -889,8 +1020,8 @@ def main():
     keys = setup_keys()
     role = login(keys)
     w = init_wallet()
-    anim("BOOTING CRYPTOFLEX CORE", 20, 0.6, sub=["loading modules", "mounting vault", "calibrating rig"], style="wave")
-    anim("SYNCING LIVE PRICES", 10, 0.45, sub=["coingecko market feed"], style="pulse")
+    anim("BOOTING CRYPTOFLEX CORE", 16, 0.4, sub=["loading modules", "mounting vault", "calibrating rig"], style="wave")
+    anim("SYNCING LIVE PRICES", 8, 0.3, sub=["coingecko market feed"], style="pulse")
     refresh_prices(force=True)
     node_scan(); matrix_rain(rows=5, delay=0.25)
     while True:
@@ -900,7 +1031,7 @@ def main():
         save(WALLET_FILE, w)
         clear(); header()
         print(paint(f"  ══ MAIN MENU ══  {DIM}role: {role}{RESET}\n"))
-        opts = ["TOOLS + — forge / spoof / recon / drainer / rig",
+        opts = ["TOOLS — forge / spoof / recon / drainer / rig",
                 "WALLET — balances, send, receive, history",
                 "PORTFOLIO — live charts & movers",
                 "MARKET WATCH — live prices all coins",
@@ -917,7 +1048,7 @@ def main():
         try: m = int(input("\n  ➤ ").strip())
         except ValueError: continue
         if m == 0:
-            if input("  Exit? (y/n): ").lower() == "y":
+            if input("  Exit? (y/n): ").strip().lower() in ("y", "yes"):
                 anim("SHUTTING DOWN", 10, 0.5, sub=["closing sockets", "flushing vault"], style="hexwall")
                 break
         elif m == 1: tools()
